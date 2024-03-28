@@ -8,7 +8,7 @@ prompt = "People having fun in the conference room"
 image = "/home/username/projects/builders_demo/images/office.jpeg"
 image_mask = "/home/username/projects/builders_demo/images/workers_having_fun.jpeg"
 
-api_key = "sk-fCDp0qmmP7zWpRmvIEMO8YXDXcNWLm4o6bPQQfp7IuAbP3Qt"
+api_key = ""
 
 # Request
 api_url = f"https://api.stability.ai/v2beta/{model}"
