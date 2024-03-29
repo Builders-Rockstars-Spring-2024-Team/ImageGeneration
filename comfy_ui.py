@@ -29,6 +29,7 @@ CHECKPOINTS = [
     "https://huggingface.co/SG161222/Realistic_Vision_V5.1_noVAE/blob/main/Realistic_Vision_V5.1-inpainting.safetensors",
     "https://huggingface.co/dreamlike-art/dreamlike-photoreal-2.0/resolve/main/dreamlike-photoreal-2.0.safetensors",
     "https://huggingface.co/comfyanonymous/clip_vision_g/resolve/main/clip_vision_g.safetensors",
+    "https://huggingface.co/runwayml/clip_vision_g/resolve/main/clip_vision_g.safetensors",
 ]
 
 
