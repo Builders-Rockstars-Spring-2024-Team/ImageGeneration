@@ -30,6 +30,7 @@ CHECKPOINTS = [
     "https://huggingface.co/dreamlike-art/dreamlike-photoreal-2.0/resolve/main/dreamlike-photoreal-2.0.safetensors",
     "https://huggingface.co/comfyanonymous/clip_vision_g/resolve/main/clip_vision_g.safetensors",
     "https://huggingface.co/runwayml/clip_vision_g/resolve/main/clip_vision_g.safetensors",
+    "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt",
 ]
 
 
