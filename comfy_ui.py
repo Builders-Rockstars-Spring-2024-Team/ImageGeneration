@@ -57,6 +57,33 @@ def download_checkpoint():
                     num_bytes_downloaded = stream.num_bytes_downloaded
 
 
+VAES = [
+    "https://huggingface.co/stabilityai/stable-diffusion-2-inpainting/resolve/main/512-inpainting-ema.ckpt",
+]
+
+
+def download_vaes():
+    import httpx
+    from tqdm import tqdm
+
+    for url in VAES:
+        vaes_directory = "/root/models/vae"
+        local_filename = url.split("/")[-1]
+        local_filepath = pathlib.Path(vaes_directory, local_filename)
+        local_filepath.parent.mkdir(parents=True, exist_ok=True)
+        print(f"downloading {url} ...")
+        with httpx.stream("GET", url, follow_redirects=True) as stream:
+            total = int(stream.headers["Content-Length"])
+            with open(local_filepath, "wb") as f, tqdm(
+                total=total, unit_scale=True, unit_divisor=1024, unit="B"
+            ) as progress:
+                num_bytes_downloaded = stream.num_bytes_downloaded
+                for data in stream.iter_bytes():
+                    f.write(data)
+                    progress.update(stream.num_bytes_downloaded - num_bytes_downloaded)
+                    num_bytes_downloaded = stream.num_bytes_downloaded
+
+
 PLUGINS = [
     {
         "url": "https://github.com/coreyryanhanson/ComfyQR",
@@ -119,6 +146,7 @@ image = (
         "tqdm",
     )
     .run_function(download_checkpoint)
+    .run_function(download_vaes)
     .run_function(download_plugins)
 )
 stub = modal.Stub(name="comfy-ui", image=image)
