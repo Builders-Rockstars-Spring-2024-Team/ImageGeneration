@@ -121,7 +121,7 @@ image = (
     .run_function(download_checkpoint)
     .run_function(download_plugins)
 )
-stub = modal.Stub(name="example-comfy-ui", image=image)
+stub = modal.Stub(name="comfy-ui", image=image)
 
 # ## Start the ComfyUI server
 #
