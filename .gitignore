@@ -1,5 +1,6 @@
 images/
 TODO.md
+.envrc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
