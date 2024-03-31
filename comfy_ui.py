@@ -171,6 +171,5 @@ stub = modal.Stub(name="comfy-ui", image=image)
 )
 @modal.web_server(8188, startup_timeout=90)
 def web():
-    # cmd = "python main.py --dont-print-server --multi-user --listen --port 8188"  # Works in the latest ComfyUI versions, but they have bugs
     cmd = "python main.py --dont-print-server --listen --port 8188"
     subprocess.Popen(cmd, shell=True)
