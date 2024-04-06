@@ -1,0 +1,94 @@
+{
+    "b4c9ba5d-9155-400c-84f4-81972d9101fd": {
+        "prompt": [
+            16,
+            "b4c9ba5d-9155-400c-84f4-81972d9101fd",
+            {
+                "3": {
+                    "inputs": {
+                        "seed": 598342734482975,
+                        "steps": 20,
+                        "cfg": 8.0,
+                        "sampler_name": "dpmpp_2m",
+                        "scheduler": "normal",
+                        "denoise": 0.8700000000000001,
+                        "model": ["14", 0],
+                        "positive": ["6", 0],
+                        "negative": ["7", 0],
+                        "latent_image": ["12", 0],
+                    },
+                    "class_type": "KSampler",
+                    "_meta": {"title": "KSampler"},
+                },
+                "6": {
+                    "inputs": {"text": "None", "clip": ["14", 1]},
+                    "class_type": "CLIPTextEncode",
+                    "_meta": {"title": "CLIP Text Encode (Prompt)"},
+                },
+                "7": {
+                    "inputs": {"text": "watermark, text", "clip": ["14", 1]},
+                    "class_type": "CLIPTextEncode",
+                    "_meta": {"title": "CLIP Text Encode (Prompt)"},
+                },
+                "8": {
+                    "inputs": {"samples": ["3", 0], "vae": ["14", 2]},
+                    "class_type": "VAEDecode",
+                    "_meta": {"title": "VAE Decode"},
+                },
+                "9": {
+                    "inputs": {"filename_prefix": "ComfyUI", "images": ["8", 0]},
+                    "class_type": "SaveImage",
+                    "_meta": {"title": "Save Image"},
+                },
+                "10": {
+                    "inputs": {
+                        "image": "2eb3f9ed-c296-4ac5-a49e-77975eb957f7.jpg",
+                        "upload": "image",
+                    },
+                    "class_type": "LoadImage",
+                    "_meta": {"title": "Load Image"},
+                },
+                "12": {
+                    "inputs": {"pixels": ["10", 0], "vae": ["14", 2]},
+                    "class_type": "VAEEncode",
+                    "_meta": {"title": "VAE Encode"},
+                },
+                "14": {
+                    "inputs": {"ckpt_name": "v1-5-pruned-emaonly.ckpt"},
+                    "class_type": "CheckpointLoaderSimple",
+                    "_meta": {"title": "Load Checkpoint"},
+                },
+            },
+            {"client_id": "67087484-9258-4841-9a6b-ecf5f3f57941"},
+            ["9"],
+        ],
+        "outputs": {
+            "9": {
+                "images": [
+                    {
+                        "filename": "ComfyUI_00003_.png",
+                        "subfolder": "",
+                        "type": "output",
+                    }
+                ]
+            }
+        },
+        "status": {
+            "status_str": "success",
+            "completed": True,
+            "messages": [
+                [
+                    "execution_start",
+                    {"prompt_id": "b4c9ba5d-9155-400c-84f4-81972d9101fd"},
+                ],
+                [
+                    "execution_cached",
+                    {
+                        "nodes": ["7", "14", "6"],
+                        "prompt_id": "b4c9ba5d-9155-400c-84f4-81972d9101fd",
+                    },
+                ],
+            ],
+        },
+    }
+}

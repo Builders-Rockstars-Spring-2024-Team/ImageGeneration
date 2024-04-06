@@ -1,64 +1,149 @@
 import json
 import urllib
 import uuid
-from pathlib import Path
-from typing import Optional
-
-from fastapi import FastAPI, Header
-
-# from fastapi.responses import JSONResponse
-from modal import Image, Stub, Volume, asgi_app
+import os
 
 
-set_up_reverse_proxy = [
-    # Install rathole
-    "wget https://github.com/rapiz1/rathole/releases/download/v0.5.0/rathole-x86_64-unknown-linux-gnu.zip -O /root/rathole.zip",
-    "unzip /root/rathole.zip -d /root",
-    "mv /root/rathole /usr/local/bin/",  # Move rathole to a directory in PATH
-    "rm /root/rathole.zip",
-    # Create server.toml file for rathole
-    "mkdir -p /etc/rathole",
-    "echo '[server]' > /etc/rathole/server.toml",
-    "echo 'bind_addr = \"0.0.0.0:2333\"' >> /etc/rathole/server.toml",
-    "echo '' >> /etc/rathole/server.toml",
-    "echo '[server.services.comfyui]' >> /etc/rathole/server.toml",
-    "echo 'token = \"icecream\"' >> /etc/rathole/server.toml",
-    "echo 'local_addr = \"127.0.0.1:8000\"' >> /etc/rathole/server.toml",
-    # Set permissions to 600 for security
-    "chmod 600 /etc/rathole/server.toml",
-    # Run rathole in the background
-    "/usr/local/bin/rathole -s /etc/rathole/server.toml &",
-]
+from modal import Image, Stub, Secret, asgi_app
+from fastapi import FastAPI
 
+# Text to image
+from workflows.text_to_image.workflow import workflow as workflow_text_to_image
+from workflows.text_to_image.prepare_workflow import (
+    prepare_workflow as prepare_workflow_text_to_image,
+)
+from workflows.text_to_image.filter_output import (
+    filter_output as filter_output_text_to_image,
+)
 
-web_app = FastAPI()
-stub = Stub(name="comfy-api")
-image = (
-    Image.debian_slim(python_version="3.10")
-    .pip_install("websocket-client==1.6.4")
-    .pip_install("requests")
-    # .apt_install("wget", "unzip")
-    # .run_commands(*set_up_reverse_proxy)
+# Image to image
+from workflows.image_to_image.workflow import workflow as workflow_image_to_image
+from workflows.image_to_image.prepare_workflow import (
+    prepare_workflow as prepare_workflow_image_to_image,
+)
+from workflows.image_to_image.filter_output import (
+    filter_output as filter_output_image_to_image,
+)
+
+# Image to video
+from workflows.image_to_video.workflow import workflow as workflow_image_to_video
+from workflows.image_to_video.prepare_workflow import (
+    prepare_workflow as prepare_workflow_image_to_video,
+)
+from workflows.image_to_video.filter_output import (
+    filter_output as filter_output_image_to_video,
 )
 
 
-VOLUME_NAME = "comfyui-workflow"
-volume = Volume.from_name(VOLUME_NAME)
-VOL_MOUNT_PATH = Path("/vol")
-VOL_MOUNT_WORKFLOW_PATH = VOL_MOUNT_PATH / "img2img.json"
+stub = Stub(name="ComfyCustomApi")
+image = (
+    Image.debian_slim(python_version="3.12")
+    .pip_install("websocket-client==1.6.4")
+    .pip_install("requests")
+)
 
-COMFYUI_SERVER_PORT = "8188"
-COMFYUI_SERVER_URL = "https://pbvrct--comfy-server-comfyui-server-dev.modal.run"
+with image.imports():  # These are only imported inside the container. The others are imported both locally and inside the container.
+    from fastapi import Header, UploadFile, Request, Response
+    import websocket
 
 
-def run_workflow(ws, prompt: str, server_address: str, client_id: str) -> list[bytes]:
-    p = {"prompt": prompt, "client_id": client_id}
-    data = json.dumps(p).encode("utf-8")
+COMFYUI_SERVER_LABEL = "comfyui-web"
+
+
+web_app = FastAPI()
+
+
+@stub.function(image=image, secrets=[Secret.from_dotenv()])
+@asgi_app()
+def api():
+    modal_profile = os.environ["MODAL_PROFILE"]
+    # comfy_ui_server_url = (
+    #     f"https://{modal_profile}--{COMFYUI_SERVER_LABEL}.modal.run"  # modal deploy
+    # )
+    comfy_ui_server_url = (
+        f"https://{modal_profile}--{COMFYUI_SERVER_LABEL}-dev.modal.run"  # modal serve
+    )
+    server_address = comfy_ui_server_url.split("://")[1]
+    web_app.state.server_address = server_address
+    return web_app
+
+
+@stub.function(image=image)
+@web_app.post("/text_to_image")
+async def text_to_image(
+    request: Request,
+    prompt: str,
+    workflow_json: str = workflow_text_to_image,
+    user_agent: str | None = Header(None),
+):
+    server_address = request.app.state.server_address
+    print(server_address)
+
+    workflow_json = json.loads(workflow_json)
+    workflow_json = prepare_workflow_text_to_image(
+        server_address, workflow_json, prompt=prompt
+    )
+    prompt_id = run_workflow(server_address, workflow_json)
+    image = filter_output_text_to_image(server_address, prompt_id)
+    return Response(content=image, media_type="image/jpeg")
+
+
+@stub.function(image=image)
+@web_app.post("/image_to_image")
+async def image_to_image(
+    request: Request,
+    image: UploadFile,
+    prompt: str | None = None,
+    workflow_json: str | None = workflow_image_to_image,
+    user_agent: str | None = Header(None),
+):
+    server_address = request.app.state.server_address
+    input_image = await image.read()
+    workflow_json = json.loads(workflow_json)
+    workflow_json = prepare_workflow_image_to_image(
+        server_address, workflow_json, prompt=prompt, image=input_image
+    )
+    prompt_id = run_workflow(server_address, workflow_json)
+    image = filter_output_image_to_image(server_address, prompt_id)
+    return Response(content=image, media_type="image/jpeg")
+
+
+@stub.function(image=image)
+@web_app.post("/image_to_video")
+async def image_to_video(
+    request: Request,
+    image: UploadFile,
+    prompt: str | None = None,
+    workflow_json: str | None = workflow_image_to_video,
+    user_agent: str | None = Header(None),
+):
+    server_address = request.app.state.server_address
+    input_image = await image.read()
+    workflow_json = json.loads(workflow_json)
+    workflow_json = prepare_workflow_image_to_video(
+        server_address, workflow_json, prompt=prompt, image=input_image
+    )
+    prompt_id = run_workflow(server_address, workflow_json)
+    image = filter_output_image_to_video(server_address, prompt_id)
+    return Response(content=image, media_type="image/jpeg")
+
+
+def run_workflow(server_address: str, workflow_json: str):
+    data = {"prompt": workflow_json}
+    # Connect via websocket
+    client_id = str(uuid.uuid4())
+    ws_address = f"wss://{server_address}/ws?clientId={client_id}"
+    ws = websocket.WebSocket()
+    print(f"Connecting to websocket at {ws_address} ...")
+    ws.connect(ws_address)
+    print(f"Connected at {ws_address}. Running workflow via API")
+    data["client_id"] = client_id
+    # Request to run workflow
+    data = json.dumps(data).encode("utf-8")
     req = urllib.request.Request("https://{}/prompt".format(server_address), data=data)
     response_data = json.loads(urllib.request.urlopen(req).read())
+    # Listen for updates
     prompt_id = response_data["prompt_id"]
-    output_images = {}
-
     while True:
         out = ws.recv()
         if isinstance(out, str):
@@ -75,110 +160,5 @@ def run_workflow(ws, prompt: str, server_address: str, client_id: str) -> list[b
                     break  # Execution is done!
         else:
             continue  # previews are binary data
-
-    # Fetch workflow execution history, which contains references to our completed images.
-    with urllib.request.urlopen(
-        f"https://{server_address}/history/{prompt_id}"
-    ) as response:
-        output = json.loads(response.read())
-    history = output[prompt_id].get("outputs") if prompt_id in output else None
-    if not history:
-        raise RuntimeError(f"Unexpected missing ComfyUI history for {prompt_id}")
-    for node_id in history:
-        node_output = history[node_id]
-        if "images" in node_output:
-            images_output = []
-            for image in node_output["images"]:
-                image_data = fetch_image(
-                    filename=image["filename"],
-                    subfolder=image["subfolder"],
-                    folder_type=image["type"],
-                    server_address=server_address,
-                )
-                images_output.append(image_data)
-        output_images[node_id] = images_output
-    return output_images
-
-
-def fetch_image(
-    filename: str, subfolder: str, folder_type: str, server_address: str
-) -> bytes:
-    data = {"filename": filename, "subfolder": subfolder, "type": folder_type}
-    url_values = urllib.parse.urlencode(data)
-    with urllib.request.urlopen(
-        "https://{}/view?{}".format(server_address, url_values)
-    ) as response:
-        return response.read()
-
-
-@stub.function(image=image)
-@web_app.post("/generate")
-async def handle_root(
-    user_agent: Optional[str] = Header(None),
-    image_bytes=None,
-    prompt="A glass withh flowers",
-):
-    import os
-    import websocket
-    from fastapi import Response
-    import requests
-
-    volume.reload()
-
-    with open(VOL_MOUNT_WORKFLOW_PATH, "r") as file:
-        workflow_data = json.load(file)
-
-    server_address = COMFYUI_SERVER_URL.split("://")[1]  # strip protocol
-    client_id = str(uuid.uuid4())
-    ws_address = f"wss://{server_address}/ws?clientId={client_id}"
-
-    # Save the image
-    filename = "office.jpg"
-    save_directory = "/path/to/save/directory"
-    file_path = os.path.join(save_directory, filename)
-    with open(file_path, "wb") as file:
-        file.write(await image_bytes.read())
-    # Send the image to the server
-    data = {"subfolder": "your_subfolder"}
-    files = {"image": open(file_path, "rb")}
-    resp = requests.post(
-        "https://{}/upload/image".format(server_address), files=files, data=data
-    )
-    print(resp.content)
-    # Update the workflow data
-    workflow_data["6"]["inputs"]["text"] = prompt
-    workflow_data["10"]["inputs"]["image"] = filename
-
-    # Call the server
-
-    ws = websocket.WebSocket()
-    print(f"Connecting to websocket at {ws_address} ...")
-    ws.connect(ws_address)
-    print(f"Connected at {ws_address}. Running workflow via API")
-    images = run_workflow(ws, workflow_data, server_address, client_id)
-    image_list = []
-    for node_id in images:
-        for image_data in images[node_id]:
-            image_list.append(image_data)
-    # print(image_list)
-
-    # encoded_images = []
-    # for image_data in response:
-    #     encoded_image = base64.b64encode(image_data).decode("utf-8")
-    #     encoded_images.append(encoded_image)
-    # response_data = {"images": encoded_images}
-    # return JSONResponse(content=response_data)
-
-    return Response(
-        content=image_list,
-        media_type="image/jpeg",
-    )
-
-
-@stub.function(
-    image=image,
-    volumes={VOL_MOUNT_PATH: volume},
-)
-@asgi_app()
-def fastapi_app():
-    return web_app
+    # Return id to fetch results
+    return prompt_id

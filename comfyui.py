@@ -1,18 +1,19 @@
-# ---
-# lambda-test: false
-# ---
-#
-# # Run ComfyUI
-#
-# This example shows you how to run a ComfyUI workspace with `modal serve`.
-#
-# If you're unfamiliar with how ComfyUI works we recommend going through Scott Detweiler's
-# [tutorials on Youtube](https://www.youtube.com/watch?v=AbB33AxrcZo).
+"""
+This file is an edited version of the one here:
+https://github.com/modal-labs/modal-examples/blob/main/06_gpu_and_ml/comfyui/comfy_ui.py
+
+This example shows you how to run a ComfyUI workspace with `modal serve`.
+
+If you're unfamiliar with how ComfyUI works check out Scott Detweiler's tutorials on youtube
+(https://www.youtube.com/watch?v=AbB33AxrcZo).
+"""
 
 import pathlib
 import subprocess
 
 import modal
+
+COMFYUI_PORT = 8188
 
 # ## Define container image
 #
@@ -24,13 +25,16 @@ import modal
 # This download function is run as the final image building step, and takes around 10 seconds to download
 # the ~2.0 GiB model checkpoint.
 
+# Mak sure the links contain /resolve/main instead of /raw/main is your are downloading from hugginface
 CHECKPOINTS = [
-    "https://huggingface.co/stabilityai/stable-diffusion-2-inpainting/resolve/main/512-inpainting-ema.ckpt",
-    "https://huggingface.co/SG161222/Realistic_Vision_V5.1_noVAE/blob/main/Realistic_Vision_V5.1-inpainting.safetensors",
-    "https://huggingface.co/dreamlike-art/dreamlike-photoreal-2.0/resolve/main/dreamlike-photoreal-2.0.safetensors",
-    "https://huggingface.co/comfyanonymous/clip_vision_g/resolve/main/clip_vision_g.safetensors",
-    "https://huggingface.co/runwayml/clip_vision_g/resolve/main/clip_vision_g.safetensors",
+    # "https://huggingface.co/stabilityai/stable-diffusion-2-inpainting/resolve/main/512-inpainting-ema.ckpt",
+    # "https://huggingface.co/SG161222/Realistic_Vision_V5.1_noVAE/blob/main/Realistic_Vision_V5.1-inpainting.safetensors",
+    # "https://huggingface.co/dreamlike-art/dreamlike-photoreal-2.0/resolve/main/dreamlike-photoreal-2.0.safetensors",
+    # "https://huggingface.co/comfyanonymous/clip_vision_g/resolve/main/clip_vision_g.safetensors",
+    # "https://huggingface.co/runwayml/clip_vision_g/resolve/main/clip_vision_g.safetensors",
     "https://huggingface.co/runwayml/stable-diffusion-v1-5/resolve/main/v1-5-pruned-emaonly.ckpt",
+    # "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid/resolve/main/svd.safetensors", # Image to video 14 frames
+    "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt/resolve/main/svd_xt.safetensors",  # Image to vide 25 frames
 ]
 
 
@@ -58,7 +62,7 @@ def download_checkpoint():
 
 
 VAES = [
-    "https://huggingface.co/stabilityai/stable-diffusion-2-inpainting/resolve/main/512-inpainting-ema.ckpt",
+    # "https://huggingface.co/stabilityai/stable-diffusion-2-inpainting/resolve/main/512-inpainting-ema.ckpt",
 ]
 
 
@@ -89,11 +93,11 @@ PLUGINS = [
         "url": "https://github.com/coreyryanhanson/ComfyQR",
         "requirements": "requirements.txt",
     },
-    {"url": "https://github.com/ltdrdata/ComfyUI-Manager"},
-    {
-        "url": "https://github.com/ltdrdata/ComfyUI-Impact-Pack.git",
-        "requirements": "requirements.txt",
-    },
+    # {"url": "https://github.com/ltdrdata/ComfyUI-Manager"},
+    # {
+    #     "url": "https://github.com/ltdrdata/ComfyUI-Impact-Pack.git",
+    #     "requirements": "requirements.txt",
+    # },
 ]
 
 
@@ -120,7 +124,7 @@ def download_plugins():
 
 # Pin to a specific commit from https://github.com/comfyanonymous/ComfyUI/commits/master/
 # for stability. To update to a later ComfyUI version, change this commit identifier.
-comfyui_commit_sha = "d1f3637a5a944d0607b899babd8ff11d87100503"  # 2024/01/01
+comfyui_commit_sha = " e6482fbbfc83cd25add0532b2e4c51d305e8a232 "  # 2024/04/01
 
 image = (
     modal.Image.debian_slim()
@@ -149,7 +153,7 @@ image = (
     .run_function(download_vaes)
     .run_function(download_plugins)
 )
-stub = modal.Stub(name="comfy-ui", image=image)
+stub = modal.Stub(name="ComfyUI", image=image)
 
 # ## Start the ComfyUI server
 #
@@ -171,5 +175,5 @@ stub = modal.Stub(name="comfy-ui", image=image)
 )
 @modal.web_server(8188, startup_timeout=90)
 def web():
-    cmd = "python main.py --dont-print-server --listen --port 8188"
+    cmd = f"python main.py --dont-print-server --listen --port {COMFYUI_PORT}"
     subprocess.Popen(cmd, shell=True)

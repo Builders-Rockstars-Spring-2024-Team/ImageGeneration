@@ -1,7 +1,7 @@
 {
   "3": {
     "inputs": {
-      "seed": 215352033870615,
+      "seed": 598342734482975,
       "steps": 20,
       "cfg": 8,
       "sampler_name": "dpmpp_2m",
@@ -19,7 +19,7 @@
   },
   "6": {
     "inputs": {
-      "text": "workers working on a office\n",
+      "text": "an office",
       "clip": ["14", 1]
     },
     "class_type": "CLIPTextEncode",
@@ -29,7 +29,7 @@
   },
   "7": {
     "inputs": {
-      "text": "naked, nude\n",
+      "text": "watermark, text",
       "clip": ["14", 1]
     },
     "class_type": "CLIPTextEncode",
@@ -59,7 +59,7 @@
   },
   "10": {
     "inputs": {
-      "image": "office.png",
+      "image": "example.png",
       "upload": "image"
     },
     "class_type": "LoadImage",
@@ -87,4 +87,3 @@
     }
   }
 }
-

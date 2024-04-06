@@ -1,7 +1,10 @@
+# To avoid mounting the json file in the container
+# Make sure there are no backslashes as in \n
+workflow = """
 {
   "1": {
     "inputs": {
-      "ckpt_name": "dreamlike-photoreal-2.0.safetensors"
+      "ckpt_name": "v1-5-pruned-emaonly.ckpt"
     },
     "class_type": "CheckpointLoaderSimple",
     "_meta": {
@@ -15,7 +18,7 @@
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
-      "title": "CLIP Text Encode (Positive)"
+      "title": "CLIP Text Encode (Prompt)"
     }
   },
   "3": {
@@ -25,12 +28,12 @@
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
-      "title": "CLIP Text Encode (Negative)"
+      "title": "CLIP Text Encode (Prompt)"
     }
   },
   "4": {
     "inputs": {
-      "seed": 350088449706888,
+      "seed": 232824767484224,
       "steps": 12,
       "cfg": 8,
       "sampler_name": "euler",
@@ -67,19 +70,10 @@
       "title": "VAE Decode"
     }
   },
-  "7": {
-    "inputs": {
-      "images": ["6", 0]
-    },
-    "class_type": "PreviewImage",
-    "_meta": {
-      "title": "Preview Image"
-    }
-  },
   "8": {
     "inputs": {
       "add_noise": "enable",
-      "noise_seed": 350088449706888,
+      "noise_seed": 395748023703486,
       "steps": 30,
       "cfg": 8,
       "sampler_name": "euler",
@@ -108,23 +102,15 @@
       "title": "Upscale Latent By"
     }
   },
-  "11": {
+  "13": {
     "inputs": {
-      "samples": ["4", 0],
-      "vae": ["1", 2]
+      "filename_prefix": "ComfyUI",
+      "images": ["6", 0]
     },
-    "class_type": "VAEDecode",
+    "class_type": "SaveImage",
     "_meta": {
-      "title": "VAE Decode"
-    }
-  },
-  "12": {
-    "inputs": {
-      "images": ["11", 0]
-    },
-    "class_type": "PreviewImage",
-    "_meta": {
-      "title": "Preview Image"
+      "title": "Save Image"
     }
   }
 }
+"""

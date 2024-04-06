@@ -1,0 +1,107 @@
+{
+    "739636bc-dde3-4c44-801f-8fbac4b58dec": {
+        "prompt": [
+            6,
+            "739636bc-dde3-4c44-801f-8fbac4b58dec",
+            {
+                "3": {
+                    "inputs": {
+                        "seed": 408620621372186,
+                        "steps": 20,
+                        "cfg": 2.5,
+                        "sampler_name": "euler",
+                        "scheduler": "karras",
+                        "denoise": 1.0,
+                        "model": ["14", 0],
+                        "positive": ["12", 0],
+                        "negative": ["12", 1],
+                        "latent_image": ["12", 2],
+                    },
+                    "class_type": "KSampler",
+                    "_meta": {"title": "KSampler"},
+                },
+                "8": {
+                    "inputs": {"samples": ["3", 0], "vae": ["15", 2]},
+                    "class_type": "VAEDecode",
+                    "_meta": {"title": "VAE Decode"},
+                },
+                "10": {
+                    "inputs": {
+                        "filename_prefix": "ComfyUI",
+                        "fps": 10.0,
+                        "lossless": False,
+                        "quality": 85,
+                        "method": "default",
+                        "images": ["8", 0],
+                    },
+                    "class_type": "SaveAnimatedWEBP",
+                    "_meta": {"title": "SaveAnimatedWEBP"},
+                },
+                "12": {
+                    "inputs": {
+                        "width": 1024,
+                        "height": 576,
+                        "video_frames": 25,
+                        "motion_bucket_id": 127,
+                        "fps": 6,
+                        "augmentation_level": 0.0,
+                        "clip_vision": ["15", 1],
+                        "init_image": ["23", 0],
+                        "vae": ["15", 2],
+                    },
+                    "class_type": "SVD_img2vid_Conditioning",
+                    "_meta": {"title": "SVD_img2vid_Conditioning"},
+                },
+                "14": {
+                    "inputs": {"min_cfg": 1.0, "model": ["15", 0]},
+                    "class_type": "VideoLinearCFGGuidance",
+                    "_meta": {"title": "VideoLinearCFGGuidance"},
+                },
+                "15": {
+                    "inputs": {"ckpt_name": "svd_xt.safetensors"},
+                    "class_type": "ImageOnlyCheckpointLoader",
+                    "_meta": {"title": "Image Only Checkpoint Loader (img2vid model)"},
+                },
+                "23": {
+                    "inputs": {
+                        "image": "8c7d922c-6d89-44b7-8cb7-645894e4fa31.jpg",
+                        "upload": "image",
+                    },
+                    "class_type": "LoadImage",
+                    "_meta": {"title": "Load Image"},
+                },
+            },
+            {"client_id": "e7a5f761-60ea-4476-949e-ab2d6fa9d8c1"},
+            ["10"],
+        ],
+        "outputs": {
+            "10": {
+                "images": [
+                    {
+                        "filename": "ComfyUI_00006_.webp",
+                        "subfolder": "",
+                        "type": "output",
+                    }
+                ],
+                "animated": [True],
+            }
+        },
+        "status": {
+            "status_str": "success",
+            "completed": True,
+            "messages": [
+                [
+                    "execution_start",
+                    {"prompt_id": "739636bc-dde3-4c44-801f-8fbac4b58dec"},
+                ],
+                [
+                    "execution_cached",
+                    {
+                        "nodes": ["14", "15"],
+                        "prompt_id": "739636bc-dde3-4c44-801f-8fbac4b58dec",
+                    },
+                ],
+            ],
+        },
+    }
+}

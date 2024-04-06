@@ -1,2 +1,4 @@
-requests
 modal
+fastapi
+python-dotenv
+python-multipart

@@ -1,3 +1,6 @@
+# To avoid mounting the json file in the container
+# Make sure there are no backslashes as in \n
+workflow = """
 {
   "3": {
     "inputs": {
@@ -7,22 +10,10 @@
       "sampler_name": "dpmpp_2m",
       "scheduler": "normal",
       "denoise": 0.8700000000000001,
-      "model": [
-        "14",
-        0
-      ],
-      "positive": [
-        "6",
-        0
-      ],
-      "negative": [
-        "7",
-        0
-      ],
-      "latent_image": [
-        "12",
-        0
-      ]
+      "model": ["14", 0],
+      "positive": ["6", 0],
+      "negative": ["7", 0],
+      "latent_image": ["12", 0]
     },
     "class_type": "KSampler",
     "_meta": {
@@ -31,11 +22,8 @@
   },
   "6": {
     "inputs": {
-      "text": "photograph of victorian woman with wings, sky clouds, meadow grass\n",
-      "clip": [
-        "14",
-        1
-      ]
+      "text": "photograph of victorian woman with wings, sky clouds, meadow grass",
+      "clip": ["14", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
@@ -44,11 +32,8 @@
   },
   "7": {
     "inputs": {
-      "text": "watermark, text\n",
-      "clip": [
-        "14",
-        1
-      ]
+      "text": "watermark, text",
+      "clip": ["14", 1]
     },
     "class_type": "CLIPTextEncode",
     "_meta": {
@@ -57,14 +42,8 @@
   },
   "8": {
     "inputs": {
-      "samples": [
-        "3",
-        0
-      ],
-      "vae": [
-        "14",
-        2
-      ]
+      "samples": ["3", 0],
+      "vae": ["14", 2]
     },
     "class_type": "VAEDecode",
     "_meta": {
@@ -74,10 +53,7 @@
   "9": {
     "inputs": {
       "filename_prefix": "ComfyUI",
-      "images": [
-        "8",
-        0
-      ]
+      "images": ["8", 0]
     },
     "class_type": "SaveImage",
     "_meta": {
@@ -96,14 +72,8 @@
   },
   "12": {
     "inputs": {
-      "pixels": [
-        "10",
-        0
-      ],
-      "vae": [
-        "14",
-        2
-      ]
+      "pixels": ["10", 0],
+      "vae": ["14", 2]
     },
     "class_type": "VAEEncode",
     "_meta": {
@@ -120,3 +90,4 @@
     }
   }
 }
+"""
