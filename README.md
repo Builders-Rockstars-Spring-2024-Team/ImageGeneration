@@ -89,6 +89,8 @@ curl -X POST -F "image=@images/office.png' 'https://$MODAL_PROFILE--comfycustoma
 curl -X POST -F "image=@images/office.png" "https://$MODAL_PROFILE--comfycustomapi-api-dev.modal.run/image_to_video" --output images/image_to_video_output.webp
 ```
 
+Warning: This endpoint fails the first time it runs, due to an error with CUDA in the ComfyUI container, that I haven't fixed.
+
 ## Deploy your own ComfyUI workflows to the Api
 
 Step 1: Export them from ComfyUI:
